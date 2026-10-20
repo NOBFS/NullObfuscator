@@ -139,3 +139,45 @@ saveBtn?.addEventListener("click", async () => {
     }
   }
 });
+
+async function checkForUpdates() {
+  const updater = window.__TAURI__?.updater;
+  if (!updater) return;
+
+  try {
+    const update = await updater.check();
+    if (update) {
+      const banner = document.getElementById('updateBanner');
+      const versionText = document.getElementById('updateVersion');
+      const updateBtn = document.getElementById('updateBtn');
+      const closeBtn = document.getElementById('updateCloseBtn');
+
+      if (versionText) versionText.textContent = `v${update.version}`;
+      if (banner) banner.classList.add('show');
+
+      updateBtn?.addEventListener('click', async () => {
+        updateBtn.disabled = true;
+        updateBtn.textContent = "更新中...";
+        try {
+          await update.downloadAndInstall();
+          await window.__TAURI__.process.relaunch();
+        } catch (e) {
+          console.error(e);
+          showToast("アップデートに失敗しました");
+          updateBtn.disabled = false;
+          updateBtn.textContent = "更新する";
+        }
+      });
+
+      closeBtn?.addEventListener('click', () => {
+        banner?.classList.remove('show');
+      });
+    }
+  } catch (error) {
+    console.error("Update check failed:", error);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(checkForUpdates, 3000);
+});
