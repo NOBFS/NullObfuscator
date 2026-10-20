@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "NullObfuscator",
+  "version": "0.1.0",
+  "identifier": "com.nobfs.nullobfuscator",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "NullObfuscator",
+        "width": 1000,
+        "height": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true
+      }
+    ],
+    "security": {
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["**/*"]
+        }
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "resources/prometheus/**/*"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERCRjgxNjREMUFCOTdBNkIKUldScmVya2FUUmI0Mjdsc2hGUGJRUExMc3JrYmNaVFVwZ0tiWG8yM2xheHJHUWlGV2hrM1JMajQK",
+      "endpoints": [
+        "https://github.com/NOBFS/NullObfuscator/releases/latest/download/latest.json"
+      ]
+    }
+  }
+}

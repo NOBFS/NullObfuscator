@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NullObfuscator</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <video autoplay muted loop id="bgVideo">
+    <source src="./back.mp4" type="video/mp4">
+  </video>
+
+  <div class="overlay"></div>
+  <div class="sakura-container" id="sakuraContainer"></div>
+
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="loader-container">
+      <div class="spinner"></div>
+      <div class="loading-text">Obfuscating...</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toastNotification">コピーしました</div>
+
+  <div class="container">
+    <div class="titlebar" data-tauri-drag-region>
+      <div class="title">NullObfuscator</div>
+      <div class="window-controls">
+        <button type="button" class="window-btn minimize-btn" id="minimizeBtn"></button>
+        <button type="button" class="window-btn maximize-btn" id="maximizeBtn"></button>
+        <button type="button" class="window-btn close-btn" id="closeBtn"></button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="step-dots">
+          <div class="dot active"></div>
+          <div class="dot active"></div>
+          <div class="dot active"></div>
+          <div class="dot active"></div>
+        </div>
+
+        <div class="header-area" style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h1>Null Obfuscator</h1>
+            <p>source code obfuscator</p>
+          </div>
+          <div class="preset-area">
+            <select id="presetSelect" class="glass-select">
+              <option value="Minify">Minify (軽量)</option>
+              <option value="Weak">Weak (弱)</option>
+              <option value="Medium" selected>Medium (標準)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="pane">
+            <div class="pane-header">
+              <span>INPUT</span>
+              <span class="char-count" id="inputMeta">0 chars</span>
+            </div>
+            <textarea id="input" placeholder="-- Paste Lua src! #Null Obf" spellcheck="false"></textarea>
+          </div>
+
+          <div class="pane">
+            <div class="pane-header">
+              <span>OUTPUT</span>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn-copy" id="saveBtn">Save</button>
+                <button class="btn-copy" id="copyBtn">Copy</button>
+              </div>
+            </div>
+            <textarea id="output" placeholder="-- result" readonly spellcheck="false"></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-secondary" id="loadBtn">Load .luau</button>
+          <button class="btn btn-primary" id="runBtn">Obfuscate</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./main.js"></script>
+</body>
+</html>
