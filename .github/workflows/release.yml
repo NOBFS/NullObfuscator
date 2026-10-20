@@ -30,15 +30,6 @@ jobs:
       - name: install frontend dependencies
         run: npm install
 
-      - name: Read Changelog
-        id: changelog
-        shell: bash
-        run: |
-          NOTES=$(node -e "console.log(require('fs').readFileSync('CHANGELOG.md', 'utf8'))")
-          echo "notes<<EOF" >> $GITHUB_OUTPUT
-          echo "$NOTES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,7 +38,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'NullObfuscator ${{ github.ref_name }}'
-          releaseBody: ${{ steps.changelog.outputs.notes }}
+          releaseBody: '最新のアップデートです。アプリ内から自動で更新できます。'
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: true

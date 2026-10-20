@@ -51,12 +51,12 @@ if (sakuraContainer) {
 }
 
 const toast = document.getElementById('toastNotification');
-window.showToast = function(message) {
+function showToast(message) {
   if (!toast) return;
   toast.textContent = message;
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 3000);
-};
+}
 
 const input = document.querySelector("#input");
 const output = document.querySelector("#output");
@@ -77,11 +77,11 @@ updateMeta();
 
 runBtn?.addEventListener("click", async () => {
   if (!input.value.trim()) {
-    window.showToast("入力が空です");
+    showToast("入力が空です");
     return;
   }
   if (!invoke) {
-    window.showToast("Tauri invoke が見つかりません");
+    showToast("Tauri invoke が見つかりません");
     return;
   }
 
@@ -99,10 +99,10 @@ runBtn?.addEventListener("click", async () => {
       preset: preset
     });
     output.value = result;
-    window.showToast(`完了 (${preset}): ${result.length} chars`);
+    showToast(`完了 (${preset}): ${result.length} chars`);
   } catch (e) {
     output.value = `-- NullObfuscator\n-- ${e}`;
-    window.showToast("難読化に失敗しました");
+    showToast("難読化に失敗しました");
   } finally {
     runBtn.disabled = false;
     if (loadingOverlay) loadingOverlay.classList.add('hidden');
@@ -120,7 +120,7 @@ loadBtn?.addEventListener("click", () => {
     reader.onload = () => {
       input.value = String(reader.result ?? "");
       updateMeta();
-      window.showToast(`${file.name} を読み込みました`);
+      showToast(`${file.name} を読み込みました`);
     };
     reader.readAsText(file);
   });
@@ -131,23 +131,68 @@ copyBtn?.addEventListener("click", async () => {
   if (!output.value) return;
   try {
     await navigator.clipboard.writeText(output.value);
-    window.showToast("クリップボードにコピーしました");
+    showToast("クリップボードにコピーしました");
   } catch {
-    window.showToast("コピーに失敗しました");
+    showToast("コピーに失敗しました");
   }
 });
 
 saveBtn?.addEventListener("click", async () => {
   if (!output.value) {
-    window.showToast("保存する出力がありません");
+    showToast("保存する出力がありません");
     return;
   }
   try {
     await invoke("save_file", { content: output.value });
-    window.showToast("ファイルを保存しました");
+    showToast("ファイルを保存しました");
   } catch (e) {
     if (!String(e).includes("Save cancelled")) {
-      window.showToast("保存に失敗しました");
+      showToast("保存に失敗しました");
     }
   }
+});
+
+async function checkForUpdates() {
+  const updater = window.__TAURI__?.updater;
+  if (!updater) return;
+
+  try {
+    const update = await updater.check();
+    if (update) {
+      const banner = document.getElementById('updateBanner');
+      const versionText = document.getElementById('updateVersion');
+      const updateBtn = document.getElementById('updateBtn');
+      const closeBtn = document.getElementById('updateCloseBtn');
+
+      if (versionText) versionText.textContent = `v${update.version}`;
+      if (banner) banner.classList.add('show');
+
+      updateBtn?.addEventListener('click', async () => {
+        updateBtn.disabled = true;
+        updateBtn.textContent = "更新中...";
+        try {
+          await update.downloadAndInstall((event) => {
+            if (event.event === 'Finished') {
+              window.__TAURI__.process.relaunch();
+            }
+          });
+        } catch (e) {
+          console.error(e);
+          showToast("アップデートに失敗しました");
+          updateBtn.disabled = false;
+          updateBtn.textContent = "更新する";
+        }
+      });
+
+      closeBtn?.addEventListener('click', () => {
+        banner?.classList.remove('show');
+      });
+    }
+  } catch (error) {
+    console.error("Update check failed:", error);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(checkForUpdates, 3000);
 });
