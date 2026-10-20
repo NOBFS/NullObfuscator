@@ -2,6 +2,19 @@ const tauri = window.__TAURI__;
 const invoke = tauri?.core?.invoke;
 const appWindow = tauri?.window?.getCurrentWindow();
 
+async function loadAppVersion() {
+  try {
+    if (tauri?.app?.getVersion) {
+      const version = await tauri.app.getVersion();
+      const versionEl = document.getElementById('appVersion');
+      if (versionEl) versionEl.textContent = `v${version}`;
+    }
+  } catch (e) {
+    console.warn("Failed to get app version:", e);
+  }
+}
+loadAppVersion();
+
 document.getElementById('minimizeBtn')?.addEventListener('click', async (e) => {
   e.preventDefault();
   if (appWindow) await appWindow.minimize();
