@@ -12,15 +12,20 @@ async function checkForUpdates() {
       const updateBtn = document.getElementById('updateBtn');
       const closeBtn = document.getElementById('updateCloseBtn');
 
-      if (versionText) versionText.textContent = `v${update.version}`;
+      if (versionText) versionText.textContent = `v${update.version.replace(/^v/, '')}`;
       if (banner) banner.classList.add('show');
 
       updateBtn?.addEventListener('click', async () => {
         updateBtn.disabled = true;
         updateBtn.textContent = "更新中...";
         try {
-          localStorage.setItem('pending_update_version', update.version);
-          localStorage.setItem('pending_update_notes', update.body || '特に記載はありません。');
+          const cleanVersion = update.version.replace(/^v/, '');
+          const notes = update.body || "最新のアップデートです。";
+          
+          console.log("Updater notes:", notes);
+          
+          localStorage.setItem('pending_update_version', cleanVersion);
+          localStorage.setItem('pending_update_notes', notes);
 
           await update.downloadAndInstall((event) => {
             if (event.event === 'Finished') {
@@ -49,28 +54,35 @@ async function checkUpdateComplete() {
   const pendingNotes = localStorage.getItem('pending_update_notes');
 
   if (pendingVersion && tauri?.app?.getVersion) {
-    const currentVersion = await tauri.app.getVersion();
-    
-    if (pendingVersion === currentVersion) {
-      const modal = document.getElementById('updateCompleteModal');
-      const modalVersion = document.getElementById('modalVersion');
-      const modalNotes = document.getElementById('modalNotes');
+    try {
+      const currentVersion = await tauri.app.getVersion();
+      const cleanCurrentVersion = currentVersion.replace(/^v/, '');
       
-      if (modalVersion) modalVersion.textContent = `v${currentVersion}`;
-      if (modalNotes) modalNotes.textContent = pendingNotes || '特に記載はありません。';
-      if (modal) modal.classList.remove('hidden');
+      console.log("Pending:", pendingVersion, "Current:", cleanCurrentVersion);
 
-      const closeModal = () => {
-        if (modal) modal.classList.add('hidden');
+      if (pendingVersion === cleanCurrentVersion) {
+        const modal = document.getElementById('updateCompleteModal');
+        const modalVersion = document.getElementById('modalVersion');
+        const modalNotes = document.getElementById('modalNotes');
+        
+        if (modalVersion) modalVersion.textContent = `v${cleanCurrentVersion}`;
+        if (modalNotes) modalNotes.textContent = pendingNotes || '特に記載はありません。';
+        if (modal) modal.classList.remove('hidden');
+
+        const closeModal = () => {
+          if (modal) modal.classList.add('hidden');
+          localStorage.removeItem('pending_update_version');
+          localStorage.removeItem('pending_update_notes');
+        };
+
+        document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
+        document.getElementById('modalOkBtn')?.addEventListener('click', closeModal);
+      } else {
         localStorage.removeItem('pending_update_version');
         localStorage.removeItem('pending_update_notes');
-      };
-
-      document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
-      document.getElementById('modalOkBtn')?.addEventListener('click', closeModal);
-    } else {
-      localStorage.removeItem('pending_update_version');
-      localStorage.removeItem('pending_update_notes');
+      }
+    } catch (e) {
+      console.error("Failed to check update complete:", e);
     }
   }
 }

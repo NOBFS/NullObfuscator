@@ -32,13 +32,12 @@ jobs:
 
       - name: Read Changelog
         id: changelog
-        shell: pwsh
+        shell: bash
         run: |
-          $notes = Get-Content -Raw CHANGELOG.md
-          $notes = $notes -replace "`r`n", "`n"
-          echo "notes<<EOF" >> $env:GITHUB_OUTPUT
-          echo "$notes" >> $env:GITHUB_OUTPUT
-          echo "EOF" >> $env:GITHUB_OUTPUT
+          NOTES=$(node -e "console.log(require('fs').readFileSync('CHANGELOG.md', 'utf8'))")
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0
         env:
