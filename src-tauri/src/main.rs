@@ -45,7 +45,9 @@ async fn obfuscate_with_prometheus(app_handle: tauri::AppHandle, source: String,
     let lua_path = find_lua_executable(&resource_dir);
 
     let temp_dir = std::env::temp_dir();
-    let openssl_bat = temp_dir.join("nullobf_openssl.bat");
+    
+    // 確実に "openssl.bat" という名前で作成する
+    let openssl_bat = temp_dir.join("openssl.bat");
     if !openssl_bat.exists() {
         let bat_content = "@echo off\r\necho 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\r\nexit /b 0\r\n";
         let _ = fs::write(&openssl_bat, bat_content);
@@ -53,6 +55,12 @@ async fn obfuscate_with_prometheus(app_handle: tauri::AppHandle, source: String,
 
     let mut paths = std::env::var("PATH").unwrap_or_default();
     paths = format!("{};{};{}", temp_dir.to_string_lossy(), resource_dir.to_string_lossy(), paths);
+
+    // PATHEXT に .BAT が含まれていることを確認する
+    let mut pathext = std::env::var("PATHEXT").unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".to_string());
+    if !pathext.to_uppercase().contains(".BAT") {
+        pathext = format!("{}.BAT", pathext);
+    }
 
     let input_path = temp_dir.join("__null_in.lua");
     let output_path = temp_dir.join("__null_out.lua");
@@ -64,6 +72,7 @@ async fn obfuscate_with_prometheus(app_handle: tauri::AppHandle, source: String,
     let output = Command::new(&lua_path)
         .current_dir(&resource_dir)
         .env("PATH", paths)
+        .env("PATHEXT", pathext)
         .args([
             cli_path.to_str().unwrap(),
             "--LuaU",
@@ -81,8 +90,8 @@ async fn obfuscate_with_prometheus(app_handle: tauri::AppHandle, source: String,
 
     if !output_path.exists() {
         let _ = fs::remove_file(&input_path);
-        eprintln!("[NullObfuscator] Internal Obfuscation Error:\n{}", stderr);
-        return Err("NullObfuscator: Obfuscation failed. Please check your code for syntax errors.".into());
+        // 【重要】エラーの詳細をフロントエンドに返すように変更
+        return Err(format!("NullObfuscator Error: {}", stderr));
     }
 
     let obfuscated = fs::read_to_string(&output_path)
